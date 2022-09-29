@@ -38,19 +38,20 @@ namespace ClientServerUsingNamedPipes.Client
             DateTime start = DateTime.Now;
 
             const int tryConnectTimeout = 60 * 1000; // 1 minuto
-            _pipeClient.ConnectAsync(tryConnectTimeout);
-
-            Task.Run(() =>
+            try
             {
-                do
-                {
-                    if (_pipeClient.IsConnected)
-                    {
-                        BeginRead(new Info());
-                    }
-                } while (start < DateTime.Now.AddMinutes(tryConnectTimeout));
-            });
-           
+                _pipeClient.Connect(1000);
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+
+            if (_pipeClient.IsConnected)
+            {
+                BeginRead(new Info());
+            }
 
         }
 
