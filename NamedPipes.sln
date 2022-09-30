@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32901.215
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NamedPipes", "NamedPipes\NamedPipes.csproj", "{032873DD-0A81-417B-B43A-6B4DF0B81B70}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NamedPipesExample", "NamedPipesExample\NamedPipesExample.csproj", "{032873DD-0A81-417B-B43A-6B4DF0B81B70}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientServerUsingNamedPipes", "ClientServerUsingNamedPipes\ClientServerUsingNamedPipes.csproj", "{CFF3F2F9-285E-487C-9C77-E335FCDDFAEB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NamedPipesFullDuplex", "NamedPipesFullDuplex\NamedPipesFullDuplex.csproj", "{CFF3F2F9-285E-487C-9C77-E335FCDDFAEB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
