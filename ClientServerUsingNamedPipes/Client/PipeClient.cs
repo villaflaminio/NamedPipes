@@ -19,14 +19,12 @@ namespace ClientServerUsingNamedPipes.Client
 
         #endregion
 
-        #region c'tor
-
+    
         public PipeClient(string pipeName)
         {
             _pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
         }
 
-        #endregion
 
         #region ICommunicationClient implementation
 

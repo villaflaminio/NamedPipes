@@ -53,7 +53,7 @@ namespace NamedPipes
                 Console.WriteLine("il client " + message + " si e' disconnesso");
             };
 
-                      Console.ReadLine();
+         Console.ReadLine();
         }
     }
 }

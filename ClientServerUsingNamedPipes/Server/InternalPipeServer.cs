@@ -189,14 +189,7 @@ namespace ClientServerUsingNamedPipes.Server
                 // Get the read bytes and append them
                 info.StringBuilder.Append(Encoding.UTF8.GetString(info.Buffer, 0, readBytes));
 
-                //if (!_pipeServer.IsMessageComplete) // Message is not complete, continue reading
-                //{
-                //    BeginRead(info);
-                //}
-                //else // Message is completed
-                //{
-                // Finalize the received string and fire MessageReceivedEvent
-                var message = info.StringBuilder.ToString().TrimEnd('\0');
+               var message = info.StringBuilder.ToString().TrimEnd('\0');
 
                 OnMessageReceived(message);
 
