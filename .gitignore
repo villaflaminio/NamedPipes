@@ -22,3 +22,4 @@
 /NamedPipes/obj/Debug/NamedPipes.pdb
 /.vs/NamedPipes/FileContentIndex/read.lock
 /.idea/.idea.NamedPipes/.idea/vcs.xml
+/NamedPipes/ClientServerNamedPipes/bin/*

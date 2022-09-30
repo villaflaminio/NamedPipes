@@ -13,7 +13,7 @@ namespace NamedPipes
     {
         static void Main(string[] args)
         {
-            PipeServer _server = new PipeServer("flaminio");
+            PipeServer _server = new PipeServer("flaminio" , 10);
             PipeClient _client = new PipeClient(_server.ServerId);
             PipeClient _client2 = new PipeClient("server");
 
@@ -47,9 +47,13 @@ namespace NamedPipes
 
 
             _server.SendMessage("Server send message");
+            _server.ClientDisconnectedEvent += (sender, argss) =>
+            {
+                message = argss.ClientId;
+                Console.WriteLine("il client " + message + " si e' disconnesso");
+            };
 
-
-            Console.ReadLine();
+                      Console.ReadLine();
         }
     }
 }

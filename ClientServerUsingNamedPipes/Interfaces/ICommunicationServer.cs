@@ -26,7 +26,6 @@ namespace ClientServerUsingNamedPipes.Interfaces
         /// </summary>
         event EventHandler<ClientDisconnectedEventArgs> ClientDisconnectedEvent;
 
-        bool isConnected();
 
         Task<TaskResult> SendMessage(string message);
     }
