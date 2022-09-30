@@ -40,10 +40,8 @@ namespace NamedPipesExample
 
             _server.Start();
             _server2.Start();
-            //  Console.WriteLine("Server c# avviato");
 
             PipeMessage message = null;
-
 
             _server.Start();
             _client.Start();
@@ -54,46 +52,42 @@ namespace NamedPipesExample
             _server.MessageReceivedEvent += (sender, argss) =>
             {
                 message = argss.Message;
-               // Console.WriteLine("Server ha ricevuto " + message);
             };
 
 
             _server2.MessageReceivedEvent += (sender, argss) =>
             {
                 message = argss.Message;
-              //  Console.WriteLine("Server 2 ha ricevuto " + message);
             };
+
 
 
             _client.MessageReceivedEvent += (sender, argss) =>
             {
                 message = argss.Message;
-              //  Console.WriteLine("_client ha ricevuto " + message);
             };
-            Task.Delay(1000);
-            for (int i = 0; i < 10; i++)
-            {
-                _client.SendMessage(pipe);
-                //  _server.sendMessage("Server message " + i);
-            }
-
-            _client2.SendMessage(pipe);
-
-
-            _server.SendMessage(pipe);
-
-
+           
             _server.ClientDisconnectedEvent += (sender, argss) =>
             {
               _logger.Info("Client disconnected " + argss.ClientId);
-                //  Console.WriteLine("il client " + message + " si e' disconnesso");
             };
             _server.ClientConnectedEvent += (sender, argss) =>
             {
                 _logger.Info("Client connected " + argss.ClientId);
-                //  Console.WriteLine("il client " + message + " si e' connesso");
             };
 
+
+            Task.Delay(1000);
+            for (int i = 0; i < 10; i++)
+            {
+                _client.SendMessage(pipe);
+            }
+            
+            PipeMessage pipemsg2 = new PipeMessage("server", "client 2 message");
+            _client2.SendMessage(pipemsg2);
+
+            _server.SendMessage(pipe);
+            
             Console.ReadLine();
         }
     }

@@ -89,6 +89,7 @@
     <Compile Include="logging\ColoredMessageConverter.cs" />
     <Compile Include="logging\ILogExtentions.cs" />
     <Compile Include="logging\MessageConverter.cs" />
+    <Compile Include="Server\ComunicationHelper.cs" />
     <Compile Include="Utilities\BufferReading.cs" />
     <Compile Include="Utilities\EventHandlerExtensions.cs" />
     <Compile Include="Interfaces\ICommunication.cs" />

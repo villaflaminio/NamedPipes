@@ -261,7 +261,6 @@ namespace NamedPipesFullDuplex.Server
                         result = server.SendMessage(message);
                     }
                 }
-
             }
             catch (Exception e)
             {
