@@ -179,7 +179,7 @@ namespace NamedPipesFullDuplex.Client
         }
 
 
-        public Task<TaskResult> SendMessage(string message)
+        public void SendMessage(string message)
         {
             try
             {
@@ -210,7 +210,7 @@ namespace NamedPipesFullDuplex.Client
                     throw new IOException("pipe is not connected");
                 }
 
-                return taskCompletionSource.Task;
+               // return taskCompletionSource.Task;
             }
             catch (Exception e)
 

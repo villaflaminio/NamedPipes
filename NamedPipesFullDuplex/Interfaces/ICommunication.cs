@@ -28,7 +28,7 @@ namespace NamedPipesFullDuplex.Interfaces
         /// </summary>
         /// <param name="message"></param>
         /// <returns>A task of TaskResult</returns>
-        Task<TaskResult> SendMessage(string message);
+        void SendMessage(string message);
     }
 
 

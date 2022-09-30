@@ -13,6 +13,7 @@ using NamedPipesFullDuplex.Interfaces;
 using NamedPipesFullDuplex.Utilities;
 using Microsoft.Extensions.Logging.Log4Net.AspNetCore.Extensions;
 using NamedPipesFullDuplex.logging;
+using System.Diagnostics;
 
 namespace NamedPipesFullDuplex.Server
 {
@@ -24,7 +25,7 @@ namespace NamedPipesFullDuplex.Server
         private readonly SynchronizationContext _synchronizationContext;
         private readonly IDictionary<string, InternalPipeServer> _servers; // ConcurrentDictionary is thread safe
         private int _maxNumberOfServerInstances = 10;
-      
+
         public event EventHandler<MessageReceivedEventArgs> MessageReceivedEvent;
         public event EventHandler<ClientConnectedEventArgs> ClientConnectedEvent;
         public event EventHandler<ClientDisconnectedEventArgs> ClientDisconnectedEvent;
@@ -62,20 +63,29 @@ namespace NamedPipesFullDuplex.Server
 
         public void Stop()
         {
-            foreach (var server in _servers.Values)
+            try
             {
-                try
+                foreach (var server in _servers.Values)
                 {
-                    UnregisterFromServerEvents(server);
-                    server.Stop();
-                }
-                catch (Exception)
-                {
-                    _logger.Error("Fialed to stop server");
-                }
-            }
+                    try
+                    {
+                        _logger.Debug("Stop of server " + server.ServerId);
 
-            _servers.Clear();
+                        UnregisterFromServerEvents(server);
+                        server.Stop();
+                    }
+                    catch (Exception)
+                    {
+                        _logger.Error("Fialed to stop server " + server.ServerId);
+                    }
+                }
+
+                _servers.Clear();
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+            }
         }
 
         #endregion
@@ -87,8 +97,17 @@ namespace NamedPipesFullDuplex.Server
         /// <param name="eventArgs"></param>
         private void OnMessageReceivedEvent(MessageReceivedEventArgs eventArgs)
         {
-            _synchronizationContext.Post(e => MessageReceivedEvent.SafeInvoke(this, (MessageReceivedEventArgs)e),
-                eventArgs);
+            try
+            {
+                _logger.Info(" OnMessageReceivedEvent: " + eventArgs);
+                _synchronizationContext.Post(e => MessageReceivedEvent.SafeInvoke(this, (MessageReceivedEventArgs)e),
+                                eventArgs);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+            }
+
         }
 
         /// <summary>
@@ -97,8 +116,18 @@ namespace NamedPipesFullDuplex.Server
         /// <param name="eventArgs"></param>
         private void OnClientConnectedEvent(ClientConnectedEventArgs eventArgs)
         {
-            _synchronizationContext.Post(e => ClientConnectedEvent.SafeInvoke(this, (ClientConnectedEventArgs)e),
-                eventArgs);
+
+            try
+            {
+                _logger.Info("OnClientConnectedEvent " + eventArgs.ClientId);
+
+                _synchronizationContext.Post(e => ClientConnectedEvent.SafeInvoke(this, (ClientConnectedEventArgs)e),
+                                eventArgs);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+            }
         }
 
         /// <summary>
@@ -107,16 +136,25 @@ namespace NamedPipesFullDuplex.Server
         /// <param name="eventArgs"></param>
         private void OnClientDisconnectedEvent(ClientDisconnectedEventArgs eventArgs)
         {
-            _synchronizationContext.Post(
-                e => ClientDisconnectedEvent.SafeInvoke(this, (ClientDisconnectedEventArgs)e), eventArgs);
+            try
+            {
+                _logger.Info("New OnClientDisconnectedEvent : " + eventArgs.ClientId);
+                _synchronizationContext.Post(
+                               e => ClientDisconnectedEvent.SafeInvoke(this, (ClientDisconnectedEventArgs)e), eventArgs);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+            }
         }
-        
+
         /// <summary>
         /// Unregisters from the given server's events
         /// </summary>
         /// <param name="server"></param>
         private void UnregisterFromServerEvents(InternalPipeServer server)
         {
+            _logger.Info("UnregisterFromServerEvents ClientConnectedEvent , ClientDisconnectedEvent , MessageReceivedEvent ");
             server.ClientConnectedEvent -= ClientConnectedEventHandler;
             server.ClientDisconnectedEvent -= ClientDisconnectedEventHandler;
             server.MessageReceivedEvent -= MessageReceivedEventHandler;
@@ -130,8 +168,8 @@ namespace NamedPipesFullDuplex.Server
         /// </summary>
         private void ClientConnectedEventHandler(object sender, ClientConnectedEventArgs eventArgs)
         {
+            _logger.Debug("Enter in ClientConnectedEventHandler");
             OnClientConnectedEvent(eventArgs);
-
             StartNamedPipeServer(); // Create a additional server as a preparation for new connection
         }
 
@@ -140,8 +178,9 @@ namespace NamedPipesFullDuplex.Server
         /// </summary>
         private void ClientDisconnectedEventHandler(object sender, ClientDisconnectedEventArgs eventArgs)
         {
-            OnClientDisconnectedEvent(eventArgs);
+            _logger.Debug("Enter in ClientDisconnectedEventHandler");
 
+            OnClientDisconnectedEvent(eventArgs);
             StopNamedPipeServer(eventArgs.ClientId);
         }
 
@@ -150,6 +189,7 @@ namespace NamedPipesFullDuplex.Server
         /// </summary>
         private void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs eventArgs)
         {
+            _logger.Debug("Enter in MessageReceivedEventHandler");
             OnMessageReceivedEvent(eventArgs);
         }
 
@@ -163,14 +203,23 @@ namespace NamedPipesFullDuplex.Server
         /// </summary>
         private void StartNamedPipeServer()
         {
-            var server = new InternalPipeServer(_pipeName, _maxNumberOfServerInstances);
-            _servers[server.Id] = server;
+            try
+            {
+                _logger.Debug("Enter in StartNamedPipeServer ");
+                var server = new InternalPipeServer(_pipeName, _maxNumberOfServerInstances);
+                _servers[server.Id] = server;
 
-            server.ClientConnectedEvent += ClientConnectedEventHandler;
-            server.ClientDisconnectedEvent += ClientDisconnectedEventHandler;
-            server.MessageReceivedEvent += MessageReceivedEventHandler;
+                _logger.Trace("Subscribing to ClientConnectedEvent ,ClientDisconnectedEvent , MessageReceivedEvent ");
+                server.ClientConnectedEvent += ClientConnectedEventHandler;
+                server.ClientDisconnectedEvent += ClientDisconnectedEventHandler;
+                server.MessageReceivedEvent += MessageReceivedEventHandler;
 
-            server.Start();
+                server.Start();
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+            }
         }
 
         /// <summary>
@@ -179,33 +228,48 @@ namespace NamedPipesFullDuplex.Server
         /// <param name="id"></param>
         private void StopNamedPipeServer(string id)
         {
-            UnregisterFromServerEvents(_servers[id]);
-            _servers[id].Stop();
-            _servers.Remove(id);
+            try
+            {
+                _logger.Debug("Stop PipeServer id : " + id);
+
+                UnregisterFromServerEvents(_servers[id]);
+                _servers[id].Stop();
+                _servers.Remove(id);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+            }
         }
-       
+
 
         /// <summary>
         /// Starts a new NamedPipeServerStream that waits for connection
         /// </summary>
-        public Task<TaskResult> SendMessage(string message)
+        public void SendMessage(string message)
         {
-            Task<TaskResult> result; 
-
-            foreach (var server in _servers.Values)
+            try
             {
+                Task<TaskResult> result;
 
-                if (server.isConnected())
+                foreach (var server in _servers.Values)
                 {
-                    result = server.SendMessage(message);
-                    Console.WriteLine(result.Result.ToString());
+
+                    if (server.isConnected())
+                    {
+                        result = server.SendMessage(message);
+                    }
                 }
+
             }
-            return null;
+            catch (Exception e)
+            {
+                _logger.Error(e);
+            }
 
         }
 
-       
+
         #endregion
     }
 }
