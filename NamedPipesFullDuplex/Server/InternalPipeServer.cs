@@ -7,10 +7,12 @@ using System.Threading.Tasks;
 using log4net;
 using NamedPipesFullDuplex.Interfaces;
 using NamedPipesFullDuplex.Utilities;
+using Microsoft.Extensions.Logging.Log4Net.AspNetCore.Extensions;
+using NamedPipesFullDuplex.logging;
 
 namespace NamedPipesFullDuplex.Server
 {
-    internal class InternalPipeServer 
+    internal class InternalPipeServer
     {
         private static readonly ILog _logger = LogManager.GetLogger(typeof(InternalPipeServer));
 
@@ -31,8 +33,19 @@ namespace NamedPipesFullDuplex.Server
         /// </summary>
         public InternalPipeServer(string pipeName, int maxNumberOfServerInstances)
         {
-            _pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, maxNumberOfServerInstances,PipeTransmissionMode.Message, PipeOptions.Asynchronous);
-            Id = Guid.NewGuid().ToString();
+            try
+            {
+                _logger.Debug("Enter in constructor of InternalPipeServer ");
+                _logger.Trace(string.Format("Received parameters: pipeName: {0} , maxNumberOfServerInstances : {1} ", pipeName, maxNumberOfServerInstances));
+                _pipeServer = new NamedPipeServerStream(pipeName, PipeDirection.InOut, maxNumberOfServerInstances, PipeTransmissionMode.Message, PipeOptions.Asynchronous);
+
+                Id = Guid.NewGuid().ToString();
+                _logger.Trace("New InternalPipeServer created with Id: " + Id);
+            }
+            catch (Exception e)
+            {
+                _logger.Fatal(e);
+            }
         }
 
 
@@ -42,13 +55,22 @@ namespace NamedPipesFullDuplex.Server
         /// </summary>
         private void OnMessageReceivedEvent(string message)
         {
-            if (MessageReceivedEvent != null)
+            try
             {
-                MessageReceivedEvent(this,
-                    new MessageReceivedEventArgs
-                    {
-                        Message = message
-                    });
+                _logger.Debug("Enter in OnMessageReceivedEvent " + message);
+
+                if (MessageReceivedEvent != null)
+                {
+                    MessageReceivedEvent(this,
+                        new MessageReceivedEventArgs
+                        {
+                            Message = message
+                        });
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
             }
         }
 
@@ -59,6 +81,7 @@ namespace NamedPipesFullDuplex.Server
         {
             if (ClientConnectedEvent != null)
             {
+                _logger.Debug("Client " + Id + " Connected");
                 ClientConnectedEvent(this, new ClientConnectedEventArgs { ClientId = Id });
             }
         }
@@ -70,6 +93,8 @@ namespace NamedPipesFullDuplex.Server
         {
             if (ClientDisconnectedEvent != null)
             {
+                _logger.Debug("Client " + Id + " Disconnected");
+
                 ClientDisconnectedEvent(this, new ClientDisconnectedEventArgs { ClientId = Id });
             }
         }
@@ -90,11 +115,12 @@ namespace NamedPipesFullDuplex.Server
         {
             try
             {
+                _logger.Debug("Enter in Start method of InternalPipeServer " + Id);
                 _pipeServer.BeginWaitForConnection(WaitForConnectionCallBack, null);
             }
             catch (Exception ex)
             {
-                _logger.Error(ex);
+                _logger.Fatal(ex);
                 throw;
             }
         }
@@ -105,20 +131,29 @@ namespace NamedPipesFullDuplex.Server
         /// </summary>
         private void WaitForConnectionCallBack(IAsyncResult result)
         {
-            if (!_isStopping)
+            try
             {
-                lock (_lockingObject)
+                _logger.Debug("Enter in WaitForConnectionCallBack method of InternalPipeServer " + Id);
+                if (!_isStopping)
                 {
-                    if (!_isStopping)
+                    lock (_lockingObject)
                     {
-                        // Call EndWaitForConnection to complete the connection operation
-                        _pipeServer.EndWaitForConnection(result);
+                        if (!_isStopping)
+                        {
+                            // Call EndWaitForConnection to complete the connection operation
+                            _pipeServer.EndWaitForConnection(result);
 
-                        OnConnected();
+                            OnConnected();
 
-                        BeginRead(new BufferReading());
+                            BeginRead(new BufferReading());
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+                throw;
             }
         }
 
@@ -128,24 +163,32 @@ namespace NamedPipesFullDuplex.Server
         /// </summary>
         public void Stop()
         {
-            _isStopping = true;
-
             try
             {
-                if (_pipeServer.IsConnected)
+                _isStopping = true;
+                try
                 {
-                    _pipeServer.Disconnect();
+                    if (_pipeServer.IsConnected)
+                    {
+                        _pipeServer.Disconnect();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error("Error while disconnecting the pipe server", ex);
+                    throw;
+                }
+                finally
+                {
+                    _pipeServer.Close();
+                    _pipeServer.Dispose();
+                    _logger.Info("Pipe server stopped");
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                _logger.Error(ex);
+                _logger.Fatal(e);
                 throw;
-            }
-            finally
-            {
-                _pipeServer.Close();
-                _pipeServer.Dispose();
             }
         }
 
@@ -158,6 +201,7 @@ namespace NamedPipesFullDuplex.Server
         {
             try
             {
+                _logger.Debug("Enter in BeginRead method of InternalPipeServer " + Id);
                 _pipeServer.BeginRead(bufferReading.Buffer, 0, bufferReading.BufferSize, EndReadCallBack, bufferReading);
             }
             catch (Exception ex)
@@ -173,79 +217,108 @@ namespace NamedPipesFullDuplex.Server
         /// </summary>
         private void EndReadCallBack(IAsyncResult result)
         {
-            var readBytes = _pipeServer.EndRead(result);
-            if (readBytes > 0)
+            try
             {
-                var info = (BufferReading)result.AsyncState;
+                _logger.Debug("Enter in EndReadCallBack method of InternalPipeServer " + Id);
 
-                // Get the read bytes and append them
-                info.StringBuilder.Append(Encoding.UTF8.GetString(info.Buffer, 0, readBytes));
-
-               var message = info.StringBuilder.ToString().TrimEnd('\0');
-
-                OnMessageReceivedEvent(message);
-
-                // Begin a new reading operation
-                BeginRead(new BufferReading());
-                //}
-            }
-            /// When no bytes were read, it can mean that the client have been disconnected or some problem in BeginRead
-            else
-            {
-                if (!_isStopping)
+                var readBytes = _pipeServer.EndRead(result);
+                if (readBytes > 0)
                 {
-                    lock (_lockingObject)
+                    var info = (BufferReading)result.AsyncState;
+
+                    // Get the read bytes and append them
+                    info.StringBuilder.Append(Encoding.UTF8.GetString(info.Buffer, 0, readBytes));
+
+                    var message = info.StringBuilder.ToString().TrimEnd('\0');
+
+                    OnMessageReceivedEvent(message);
+
+                    // Begin a new reading operation
+                    BeginRead(new BufferReading());
+                }
+                /// When no bytes were read, it can mean that the client have been disconnected or some problem in BeginRead
+                else
+                {
+                    if (!_isStopping)
                     {
-                        if (!_isStopping)
+                        lock (_lockingObject)
                         {
-                            OnDisconnected();
-                            Stop();
+                            if (!_isStopping)
+                            {
+                                _logger.Debug("No bytes read, client disconnected");
+                                OnDisconnected();
+                                Stop();
+                            }
                         }
                     }
                 }
             }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+            }
         }
 
-    
-         public Task<TaskResult> SendMessage(string message)
+
+        public Task<TaskResult> SendMessage(string message)
         {
             var taskCompletionSource = new TaskCompletionSource<TaskResult>();
 
-            if (_pipeServer.IsConnected)
+            try
             {
-                var buffer = Encoding.UTF8.GetBytes(message);
-                _pipeServer.BeginWrite(buffer, 0, buffer.Length, asyncResult =>
+                _logger.Debug("Enter in SendMessage method of InternalPipeServer " + Id);
+                if (_pipeServer.IsConnected)
                 {
-                    try
+                    var buffer = Encoding.UTF8.GetBytes(message);
+                    _pipeServer.BeginWrite(buffer, 0, buffer.Length, asyncResult =>
                     {
-                        taskCompletionSource.SetResult(EndWriteCallBack(asyncResult));
-                    }
-                    catch (Exception ex)
-                    {
-                        taskCompletionSource.SetException(ex);
-                    }
+                        try
+                        {
+                            taskCompletionSource.SetResult(EndWriteCallBack(asyncResult));
+                        }
+                        catch (Exception ex)
+                        {
+                            taskCompletionSource.SetException(ex);
+                        }
 
-                }, null);
+                    }, null);
+                }
+                else
+                {
+                    _logger.Error("Cannot send message, pipe is not connected");
+                    throw new IOException("pipe is not connected");
+                }
+
             }
-            else
+            catch (Exception e)
             {
-                _logger.Error("Cannot send message, pipe is not connected");
-                throw new IOException("pipe is not connected");
+                _logger.Error(e);
             }
-
             return taskCompletionSource.Task;
+
         }
 
 
         public TaskResult EndWriteCallBack(IAsyncResult asyncResult)
         {
-            _pipeServer.EndWrite(asyncResult);
-            _pipeServer.Flush();
+            try
+            {
+                _logger.Debug("Enter in EndWriteCallBack");
+                _pipeServer.EndWrite(asyncResult);
+                _pipeServer.Flush();
+                return new TaskResult { IsSuccess = true };
 
-            return new TaskResult { IsSuccess = true };
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+                return new TaskResult { IsSuccess = false };
+
+            }
+
         }
 
-       
+
         public bool isConnected()
         {
             return _pipeServer.IsConnected;

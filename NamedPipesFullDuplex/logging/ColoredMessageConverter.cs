@@ -12,8 +12,6 @@ namespace NamedPipesFullDuplex.logging
     {
         protected override void Convert(TextWriter writer, LoggingEvent loggingEvent)
         {
-            
-
             Console.Write("{0} | {1} ", DateTime.Now.ToString(), loggingEvent.LoggerName);
             switch (loggingEvent.Level.Name)
             {

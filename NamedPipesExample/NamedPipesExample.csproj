@@ -102,7 +102,7 @@
   <ItemGroup>
     <None Include="App.config" />
     <EmbeddedResource Include="logging\log4net.config">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </EmbeddedResource>
     <None Include="packages.config" />
   </ItemGroup>

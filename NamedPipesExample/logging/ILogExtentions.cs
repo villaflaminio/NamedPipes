@@ -15,7 +15,7 @@ namespace NamedPipesExample.logging
 
         public static void Trace(this ILog log, string message)
         {
-            Trace(log, message, null);
+            log.Trace(message, null);
         }
 
         public static void Verbose(this ILog log, string message, Exception exception)
@@ -26,7 +26,7 @@ namespace NamedPipesExample.logging
 
         public static void Verbose(this ILog log, string message)
         {
-            Verbose(log, message, null);
+            log.Verbose(message, null);
         }
     }
 }

@@ -99,7 +99,7 @@ namespace NamedPipesFullDuplex.Server
         {
             try
             {
-                _logger.Info(" OnMessageReceivedEvent: " + eventArgs);
+                _logger.Info("Server -> New message recived : " + eventArgs.Message);
                 _synchronizationContext.Post(e => MessageReceivedEvent.SafeInvoke(this, (MessageReceivedEventArgs)e),
                                 eventArgs);
             }
@@ -119,7 +119,7 @@ namespace NamedPipesFullDuplex.Server
 
             try
             {
-                _logger.Info("OnClientConnectedEvent " + eventArgs.ClientId);
+                _logger.Info("New Client connected " + eventArgs.ClientId);
 
                 _synchronizationContext.Post(e => ClientConnectedEvent.SafeInvoke(this, (ClientConnectedEventArgs)e),
                                 eventArgs);
@@ -138,7 +138,7 @@ namespace NamedPipesFullDuplex.Server
         {
             try
             {
-                _logger.Info("New OnClientDisconnectedEvent : " + eventArgs.ClientId);
+                _logger.Info("Client Disconnected : " + eventArgs.ClientId);
                 _synchronizationContext.Post(
                                e => ClientDisconnectedEvent.SafeInvoke(this, (ClientDisconnectedEventArgs)e), eventArgs);
             }
@@ -250,6 +250,7 @@ namespace NamedPipesFullDuplex.Server
         {
             try
             {
+                _logger.Debug("PipeServer  SendMessage ");
                 Task<TaskResult> result;
 
                 foreach (var server in _servers.Values)

@@ -30,7 +30,8 @@ namespace NamedPipesExample
             }
 
 
-            _logger.Debug("start program");
+            _logger.Debug("Server c# avviato");
+
             IPipeServer _server = new PipeServer("flaminio", 10);
             IPipeServer _server2 = new PipeServer("server", 10);
             IPipeClient _client = new PipeClient(_server.ServerId);
@@ -38,7 +39,7 @@ namespace NamedPipesExample
 
             _server.Start();
             _server2.Start();
-            Console.WriteLine("Server c# avviato");
+          //  Console.WriteLine("Server c# avviato");
 
             string message = null;
 
@@ -53,21 +54,21 @@ namespace NamedPipesExample
             _server.MessageReceivedEvent += (sender, argss) =>
             {
                 message = argss.Message;
-                Console.WriteLine("Server ha ricevuto " + message);
+               // Console.WriteLine("Server ha ricevuto " + message);
             };
 
 
             _server2.MessageReceivedEvent += (sender, argss) =>
             {
                 message = argss.Message;
-                Console.WriteLine("Server 2 ha ricevuto " + message);
+              //  Console.WriteLine("Server 2 ha ricevuto " + message);
             };
 
 
             _client.MessageReceivedEvent += (sender, argss) =>
             {
                 message = argss.Message;
-                Console.WriteLine("_client ha ricevuto " + message);
+              //  Console.WriteLine("_client ha ricevuto " + message);
             };
             Task.Delay(1000);
             for (int i = 0; i < 10; i++)
@@ -85,12 +86,12 @@ namespace NamedPipesExample
             _server.ClientDisconnectedEvent += (sender, argss) =>
             {
                 message = argss.ClientId;
-                Console.WriteLine("il client " + message + " si e' disconnesso");
+              //  Console.WriteLine("il client " + message + " si e' disconnesso");
             };
             _server.ClientConnectedEvent += (sender, argss) =>
             {
                 message = argss.ClientId;
-                Console.WriteLine("il client " + message + " si e' connesso");
+              //  Console.WriteLine("il client " + message + " si e' connesso");
             };
 
             Console.ReadLine();

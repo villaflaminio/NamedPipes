@@ -229,6 +229,7 @@ namespace NamedPipesFullDuplex.Client
         {
             try
             {
+                _logger.Debug("Enter in EndSendMessageCallBack");
                 _pipeClient.EndWrite(asyncResult);
                 _pipeClient.Flush();
                 return new TaskResult { IsSuccess = true };
