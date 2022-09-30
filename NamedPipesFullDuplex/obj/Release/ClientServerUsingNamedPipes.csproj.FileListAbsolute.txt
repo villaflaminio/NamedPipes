@@ -1,6 +1,0 @@
-C:\work_space\c#\Named-Pipes-master\ClientServerUsingNamedPipes\ClientServerUsingNamedPipes\bin\Release\ClientServerUsingNamedPipes.dll
-C:\work_space\c#\Named-Pipes-master\ClientServerUsingNamedPipes\ClientServerUsingNamedPipes\bin\Release\ClientServerUsingNamedPipes.pdb
-C:\work_space\c#\Named-Pipes-master\ClientServerUsingNamedPipes\ClientServerUsingNamedPipes\obj\Release\ClientServerUsingNamedPipes.csproj.AssemblyReference.cache
-C:\work_space\c#\Named-Pipes-master\ClientServerUsingNamedPipes\ClientServerUsingNamedPipes\obj\Release\ClientServerUsingNamedPipes.csproj.CoreCompileInputs.cache
-C:\work_space\c#\Named-Pipes-master\ClientServerUsingNamedPipes\ClientServerUsingNamedPipes\obj\Release\ClientServerUsingNamedPipes.dll
-C:\work_space\c#\Named-Pipes-master\ClientServerUsingNamedPipes\ClientServerUsingNamedPipes\obj\Release\ClientServerUsingNamedPipes.pdb
