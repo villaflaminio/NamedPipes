@@ -36,12 +36,20 @@ namespace NamedPipes
                 message = argss.Message;
                 Console.WriteLine("Server ha ricevuto " + message);
             };
+
+
             _server2.MessageReceivedEvent += (sender, argss) =>
             {
                 message = argss.Message;
                 Console.WriteLine("Server 2 ha ricevuto " + message);
             };
 
+
+            _client.MessageReceivedEvent += (sender, argss) =>
+            {
+                message = argss.Message;
+                Console.WriteLine("_client ha ricevuto " + message);
+            };
             Task.Delay(1000);
             for (int i = 0; i < 10; i++)
             {
@@ -52,6 +60,7 @@ namespace NamedPipes
            _client2.SendMessage("Client 2 message");
 
 
+            _server.SendMessage("Server send message");
             _server.SendMessage("Server send message");
             _server.ClientDisconnectedEvent += (sender, argss) =>
             {

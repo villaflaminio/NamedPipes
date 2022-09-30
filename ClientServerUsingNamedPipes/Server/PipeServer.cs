@@ -12,7 +12,7 @@ using ClientServerUsingNamedPipes.Utilities;
 
 namespace ClientServerUsingNamedPipes.Server
 {
-    public class PipeServer : ICommunicationServer
+    public class PipeServer : IPipeServer
     {
 
         private readonly string _pipeName;
@@ -70,7 +70,7 @@ namespace ClientServerUsingNamedPipes.Server
         /// Fires MessageReceivedEvent in the current thread
         /// </summary>
         /// <param name="eventArgs"></param>
-        private void OnMessageReceived(MessageReceivedEventArgs eventArgs)
+        private void OnMessageReceivedEvent(MessageReceivedEventArgs eventArgs)
         {
             _synchronizationContext.Post(e => MessageReceivedEvent.SafeInvoke(this, (MessageReceivedEventArgs)e),
                 eventArgs);
@@ -80,7 +80,7 @@ namespace ClientServerUsingNamedPipes.Server
         /// Fires ClientConnectedEvent in the current thread
         /// </summary>
         /// <param name="eventArgs"></param>
-        private void OnClientConnected(ClientConnectedEventArgs eventArgs)
+        private void OnClientConnectedEvent(ClientConnectedEventArgs eventArgs)
         {
             _synchronizationContext.Post(e => ClientConnectedEvent.SafeInvoke(this, (ClientConnectedEventArgs)e),
                 eventArgs);
@@ -90,7 +90,7 @@ namespace ClientServerUsingNamedPipes.Server
         /// Fires ClientDisconnectedEvent in the current thread
         /// </summary>
         /// <param name="eventArgs"></param>
-        private void OnClientDisconnected(ClientDisconnectedEventArgs eventArgs)
+        private void OnClientDisconnectedEvent(ClientDisconnectedEventArgs eventArgs)
         {
             _synchronizationContext.Post(
                 e => ClientDisconnectedEvent.SafeInvoke(this, (ClientDisconnectedEventArgs)e), eventArgs);
@@ -115,7 +115,7 @@ namespace ClientServerUsingNamedPipes.Server
         /// </summary>
         private void ClientConnectedEventHandler(object sender, ClientConnectedEventArgs eventArgs)
         {
-            OnClientConnected(eventArgs);
+            OnClientConnectedEvent(eventArgs);
 
             StartNamedPipeServer(); // Create a additional server as a preparation for new connection
         }
@@ -125,7 +125,7 @@ namespace ClientServerUsingNamedPipes.Server
         /// </summary>
         private void ClientDisconnectedEventHandler(object sender, ClientDisconnectedEventArgs eventArgs)
         {
-            OnClientDisconnected(eventArgs);
+            OnClientDisconnectedEvent(eventArgs);
 
             StopNamedPipeServer(eventArgs.ClientId);
         }
@@ -135,7 +135,7 @@ namespace ClientServerUsingNamedPipes.Server
         /// </summary>
         private void MessageReceivedEventHandler(object sender, MessageReceivedEventArgs eventArgs)
         {
-            OnMessageReceived(eventArgs);
+            OnMessageReceivedEvent(eventArgs);
         }
 
 

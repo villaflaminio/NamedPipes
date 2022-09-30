@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace ClientServerUsingNamedPipes.Interfaces
 {
-    public interface ICommunicationServer : ICommunication
+    public interface IPipeServer : ICommunication
     {
         /// <summary>
         /// The server id
@@ -26,8 +26,6 @@ namespace ClientServerUsingNamedPipes.Interfaces
         /// </summary>
         event EventHandler<ClientDisconnectedEventArgs> ClientDisconnectedEvent;
 
-
-        Task<TaskResult> SendMessage(string message);
     }
 
     public class ClientConnectedEventArgs : EventArgs

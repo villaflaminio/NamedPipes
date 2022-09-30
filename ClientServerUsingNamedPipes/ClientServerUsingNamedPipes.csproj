@@ -41,8 +41,8 @@
     <Compile Include="Utilities\BufferReading.cs" />
     <Compile Include="Utilities\EventHandlerExtensions.cs" />
     <Compile Include="Interfaces\ICommunication.cs" />
-    <Compile Include="Interfaces\ICommunicationClient.cs" />
-    <Compile Include="Interfaces\ICommunicationServer.cs" />
+    <Compile Include="Interfaces\IPipeClient.cs" />
+    <Compile Include="Interfaces\IPipeServer.cs" />
     <Compile Include="Client\PipeClient.cs" />
     <Compile Include="Server\InternalPipeServer.cs" />
     <Compile Include="Server\PipeServer.cs" />

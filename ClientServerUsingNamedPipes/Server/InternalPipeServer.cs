@@ -21,7 +21,7 @@ namespace ClientServerUsingNamedPipes.Server
         public event EventHandler<ClientConnectedEventArgs> ClientConnectedEvent;
         public event EventHandler<ClientDisconnectedEventArgs> ClientDisconnectedEvent;
         public event EventHandler<MessageReceivedEventArgs> MessageReceivedEvent;
-     
+
 
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace ClientServerUsingNamedPipes.Server
         /// <summary>
         /// This method fires MessageReceivedEvent with the given message
         /// </summary>
-        private void OnMessageReceived(string message)
+        private void OnMessageReceivedEvent(string message)
         {
             if (MessageReceivedEvent != null)
             {
@@ -181,7 +181,7 @@ namespace ClientServerUsingNamedPipes.Server
 
                var message = info.StringBuilder.ToString().TrimEnd('\0');
 
-                OnMessageReceived(message);
+                OnMessageReceivedEvent(message);
 
                 // Begin a new reading operation
                 BeginRead(new BufferReading());
