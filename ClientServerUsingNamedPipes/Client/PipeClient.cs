@@ -39,7 +39,7 @@ namespace ClientServerUsingNamedPipes.Client
             const int tryConnectTimeout = 60 * 1000; // 1 minuto
             try
             {
-                _pipeClient.Connect(1000);
+                _pipeClient.Connect(tryConnectTimeout);
 
             }
             catch (Exception e)
@@ -70,7 +70,6 @@ namespace ClientServerUsingNamedPipes.Client
             }
         }
 
-
         #endregion
 
         #region event
@@ -84,8 +83,6 @@ namespace ClientServerUsingNamedPipes.Client
             MessageReceivedEventArgs args = new MessageReceivedEventArgs { Message = message };
             _synchronizationContext.Post(e => MessageReceivedEvent.SafeInvoke(this, (MessageReceivedEventArgs)e), args);
         }
-
-
 
         #endregion
 
@@ -143,7 +140,7 @@ namespace ClientServerUsingNamedPipes.Client
                 {
                     try
                     {
-                        taskCompletionSource.SetResult(EndWriteCallBack(asyncResult));
+                        taskCompletionSource.SetResult(EndSendMessageCallBack(asyncResult));
                     }
                     catch (Exception ex)
                     {
@@ -166,14 +163,13 @@ namespace ClientServerUsingNamedPipes.Client
         /// It can be called whether the connection is valid or not.
         /// </summary>
         /// <param name="asyncResult"></param>
-        public TaskResult EndWriteCallBack(IAsyncResult asyncResult)
+        public TaskResult EndSendMessageCallBack(IAsyncResult asyncResult)
         {
             _pipeClient.EndWrite(asyncResult);
             _pipeClient.Flush();
 
             return new TaskResult { IsSuccess = true };
         }
-
 
         #endregion
     }

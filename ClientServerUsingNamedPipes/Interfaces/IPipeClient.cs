@@ -6,7 +6,7 @@ namespace ClientServerUsingNamedPipes.Interfaces
 {
     public interface IPipeClient : ICommunication
     {
-      
+ 
 
     }
 }

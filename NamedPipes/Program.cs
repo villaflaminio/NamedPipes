@@ -1,4 +1,5 @@
 ﻿using ClientServerUsingNamedPipes.Client;
+using ClientServerUsingNamedPipes.Interfaces;
 using ClientServerUsingNamedPipes.Server;
 using System;
 using System.Collections.Generic;
@@ -13,20 +14,21 @@ namespace NamedPipes
     {
         static void Main(string[] args)
         {
-            PipeServer _server = new PipeServer("flaminio", 10);
-            PipeServer _server2 = new PipeServer("server", 10);
-            PipeClient _client = new PipeClient(_server.ServerId);
-            PipeClient _client2 = new PipeClient("server");
+            IPipeServer _server = new PipeServer("flaminio", 10);
+            IPipeServer _server2 = new PipeServer("server", 10);
+            IPipeClient _client = new PipeClient(_server.ServerId);
+            IPipeClient _client2 = new PipeClient("server");
 
             _server.Start();
             _server2.Start();
+            Console.WriteLine("Server c# avviato");
 
             string message = null;
 
 
             _server.Start();
             _client.Start();
-           _client2.Start();
+            _client2.Start();
 
             // Act
             _client.SendMessage("Client's message");
@@ -57,18 +59,24 @@ namespace NamedPipes
                 //  _server.sendMessage("Server message " + i);
             }
 
-           _client2.SendMessage("Client 2 message");
+            _client2.SendMessage("Client 2 message");
 
 
             _server.SendMessage("Server send message");
-            _server.SendMessage("Server send message");
+
+
             _server.ClientDisconnectedEvent += (sender, argss) =>
             {
                 message = argss.ClientId;
                 Console.WriteLine("il client " + message + " si e' disconnesso");
             };
+            _server.ClientConnectedEvent += (sender, argss) =>
+            {
+                message = argss.ClientId;
+                Console.WriteLine("il client " + message + " si e' connesso");
+            };
 
-         Console.ReadLine();
+            Console.ReadLine();
         }
     }
 }

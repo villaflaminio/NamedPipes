@@ -1,10 +1,18 @@
 ﻿using ClientServerUsingNamedPipes.Utilities;
+using System;
 using System.Threading.Tasks;
 
 namespace ClientServerUsingNamedPipes.Interfaces
 {
     public interface ICommunication
     {
+
+          /// <summary>
+        /// This event is fired when a message is received 
+        /// </summary>
+        event EventHandler<MessageReceivedEventArgs> MessageReceivedEvent;
+
+
         /// <summary>
         /// Starts the communication channel
         /// </summary>
@@ -22,4 +30,23 @@ namespace ClientServerUsingNamedPipes.Interfaces
         /// <returns>A task of TaskResult</returns>
         Task<TaskResult> SendMessage(string message);
     }
+
+
+
+    public class ClientConnectedEventArgs : EventArgs
+    {
+        public string ClientId { get; set; }
+    }
+
+    public class ClientDisconnectedEventArgs : EventArgs
+    {
+        public string ClientId { get; set; }
+    }
+
+    public class MessageReceivedEventArgs : EventArgs
+    {
+        public string Message { get; set; }
+    }
+
+
 }

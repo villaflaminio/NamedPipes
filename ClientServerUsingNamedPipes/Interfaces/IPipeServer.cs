@@ -11,10 +11,6 @@ namespace ClientServerUsingNamedPipes.Interfaces
         /// </summary>
         string ServerId { get; }
 
-        /// <summary>
-        /// This event is fired when a message is received 
-        /// </summary>
-        event EventHandler<MessageReceivedEventArgs> MessageReceivedEvent;
 
         /// <summary>
         /// This event is fired when a client connects 
@@ -27,21 +23,5 @@ namespace ClientServerUsingNamedPipes.Interfaces
         event EventHandler<ClientDisconnectedEventArgs> ClientDisconnectedEvent;
 
     }
-
-    public class ClientConnectedEventArgs : EventArgs
-    {
-        public string ClientId { get; set; }
-    }
-
-    public class ClientDisconnectedEventArgs : EventArgs
-    {
-        public string ClientId { get; set; }
-    }
-
-    public class MessageReceivedEventArgs : EventArgs
-    {
-        public string Message { get; set; }
-    }
-
 
 }

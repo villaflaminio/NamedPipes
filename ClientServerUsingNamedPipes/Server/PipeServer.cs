@@ -179,6 +179,7 @@ namespace ClientServerUsingNamedPipes.Server
 
             foreach (var server in _servers.Values)
             {
+
                 if (server.isConnected())
                 {
                     result = server.SendMessage(message);
