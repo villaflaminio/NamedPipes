@@ -11,6 +11,8 @@ using log4net;
 using NamedPipesFullDuplex.Interfaces;
 using NamedPipesFullDuplex.Utilities;
 using static NamedPipesFullDuplex.Server.InternalPipeServer;
+using Microsoft.Extensions.Logging.Log4Net.AspNetCore.Extensions;
+using NamedPipesFullDuplex.logging;
 
 namespace NamedPipesFullDuplex.Client
 {
@@ -24,9 +26,19 @@ namespace NamedPipesFullDuplex.Client
 
         public PipeClient(string pipeName)
         {
-            _synchronizationContext = AsyncOperationManager.SynchronizationContext;
+            try
+            {
+                _logger.Debug("Enter in constructor of PipeClient ");
+                _logger.Trace("Recived parameter  pipeName = " + pipeName);
+                _synchronizationContext = AsyncOperationManager.SynchronizationContext;
 
-            _pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                _pipeClient = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+            }
+            catch (Exception e)
+            {
+
+                _logger.Fatal(e);
+            }
         }
 
 
@@ -37,24 +49,34 @@ namespace NamedPipesFullDuplex.Client
         /// </summary>
         public void Start()
         {
-            DateTime start = DateTime.Now;
-
-            const int tryConnectTimeout = 60 * 1000; // 1 minuto
             try
             {
-                _pipeClient.Connect(tryConnectTimeout);
+                _logger.Debug("Enter in Start method of PipeClient ");
 
+                DateTime start = DateTime.Now;
+
+                const int tryConnectTimeout = 60 * 1000; // 1 minuto
+                try
+                {
+                    _logger.Debug("Try to connect to server ");
+                    _pipeClient.Connect(tryConnectTimeout);
+                    _logger.Debug("Connected to server");
+
+                }
+                catch (Exception e)
+                {
+                    _logger.Fatal(e);
+                }
+
+                if (_pipeClient.IsConnected)
+                {
+                    BeginRead(new BufferReading());
+                }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                _logger.Error(e);
             }
-
-            if (_pipeClient.IsConnected)
-            {
-                BeginRead(new BufferReading());
-            }
-
         }
 
         /// <summary>
@@ -64,10 +86,17 @@ namespace NamedPipesFullDuplex.Client
         {
             try
             {
+                _logger.Debug("Enter in Stop method of PipeClient ");
                 _pipeClient.WaitForPipeDrain();
+            }
+            catch (Exception e)
+
+            {
+                _logger.Error(e);
             }
             finally
             {
+
                 _pipeClient.Close();
                 _pipeClient.Dispose();
             }
@@ -82,9 +111,17 @@ namespace NamedPipesFullDuplex.Client
         /// </summary>
         private void OnMessageReceived(string message)
         {
+            try
+            {
+                _logger.Info("New message recived : " + message);
 
-            MessageReceivedEventArgs args = new MessageReceivedEventArgs { Message = message };
-            _synchronizationContext.Post(e => MessageReceivedEvent.SafeInvoke(this, (MessageReceivedEventArgs)e), args);
+                MessageReceivedEventArgs args = new MessageReceivedEventArgs { Message = message };
+                _synchronizationContext.Post(e => MessageReceivedEvent.SafeInvoke(this, (MessageReceivedEventArgs)e), args);
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+            }
         }
 
         #endregion
@@ -98,6 +135,8 @@ namespace NamedPipesFullDuplex.Client
         {
             try
             {
+                _logger.Debug("Enter in BeginRead method of PipeClient ");
+
                 _pipeClient.BeginRead(bufferReading.Buffer, 0, bufferReading.BufferSize, EndReadCallBack, bufferReading);
             }
             catch (Exception ex)
@@ -113,52 +152,72 @@ namespace NamedPipesFullDuplex.Client
         /// </summary>
         private void EndReadCallBack(IAsyncResult result)
         {
-            var readBytes = _pipeClient.EndRead(result);
-            if (readBytes > 0)
+            try
             {
-                var info = (BufferReading)result.AsyncState;
+                _logger.Debug("Enter in EndReadCallBack method");
 
-                // Get the read bytes and append them
-                info.StringBuilder.Append(Encoding.UTF8.GetString(info.Buffer, 0, readBytes));
+                var readBytes = _pipeClient.EndRead(result);
+                if (readBytes > 0)
+                {
+                    var info = (BufferReading)result.AsyncState;
 
-                var message = info.StringBuilder.ToString().TrimEnd('\0');
+                    // Get the read bytes and append them
+                    info.StringBuilder.Append(Encoding.UTF8.GetString(info.Buffer, 0, readBytes));
 
-                OnMessageReceived(message);
+                    var message = info.StringBuilder.ToString().TrimEnd('\0');
 
-                // Begin a new reading operation
-                BeginRead(new BufferReading());
-                //}
+                    OnMessageReceived(message);
+
+                    // Begin a new reading operation
+                    BeginRead(new BufferReading());
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
             }
         }
 
 
         public Task<TaskResult> SendMessage(string message)
         {
-            var taskCompletionSource = new TaskCompletionSource<TaskResult>();
-
-            if (_pipeClient.IsConnected)
+            try
             {
-                var buffer = Encoding.UTF8.GetBytes(message);
-                _pipeClient.BeginWrite(buffer, 0, buffer.Length, asyncResult =>
+                _logger.Debug("Enter in SendMessage method of PipeClient ");
+                _logger.Trace("Recived parameter  message = " + message);
+
+                var taskCompletionSource = new TaskCompletionSource<TaskResult>();
+
+                if (_pipeClient.IsConnected)
                 {
-                    try
+                    var buffer = Encoding.UTF8.GetBytes(message);
+                    _pipeClient.BeginWrite(buffer, 0, buffer.Length, asyncResult =>
                     {
-                        taskCompletionSource.SetResult(EndSendMessageCallBack(asyncResult));
-                    }
-                    catch (Exception ex)
-                    {
-                        taskCompletionSource.SetException(ex);
-                    }
+                        try
+                        {
+                            taskCompletionSource.SetResult(EndSendMessageCallBack(asyncResult));
+                        }
+                        catch (Exception ex)
+                        {
+                            taskCompletionSource.SetException(ex);
+                        }
 
-                }, null);
+                    }, null);
+                }
+                else
+                {
+                    _logger.Error("Cannot send message, pipe is not connected");
+                    throw new IOException("pipe is not connected");
+                }
+
+                return taskCompletionSource.Task;
             }
-            else
+            catch (Exception e)
+
             {
-                _logger.Error("Cannot send message, pipe is not connected");
-                throw new IOException("pipe is not connected");
+                _logger.Error(e);
+                throw;
             }
-
-            return taskCompletionSource.Task;
         }
 
         /// <summary>
@@ -168,10 +227,17 @@ namespace NamedPipesFullDuplex.Client
         /// <param name="asyncResult"></param>
         public TaskResult EndSendMessageCallBack(IAsyncResult asyncResult)
         {
-            _pipeClient.EndWrite(asyncResult);
-            _pipeClient.Flush();
-
-            return new TaskResult { IsSuccess = true };
+            try
+            {
+                _pipeClient.EndWrite(asyncResult);
+                _pipeClient.Flush();
+                return new TaskResult { IsSuccess = true };
+            }
+            catch (Exception e)
+            {
+                _logger.Error(e);
+                throw;
+            }
         }
 
         #endregion

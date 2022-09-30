@@ -11,6 +11,8 @@ using log4net;
 using System.Reflection;
 using NamedPipesFullDuplex.Interfaces;
 using NamedPipesFullDuplex.Utilities;
+using Microsoft.Extensions.Logging.Log4Net.AspNetCore.Extensions;
+using NamedPipesFullDuplex.logging;
 
 namespace NamedPipesFullDuplex.Server
 {
@@ -30,10 +32,19 @@ namespace NamedPipesFullDuplex.Server
 
         public PipeServer(string pipeName, int MaxNumberOfServerInstances)
         {
-            _pipeName = pipeName;
-            _maxNumberOfServerInstances = MaxNumberOfServerInstances;
-            _synchronizationContext = AsyncOperationManager.SynchronizationContext;
-            _servers = new ConcurrentDictionary<string, InternalPipeServer>();
+            try
+            {
+                _logger.Debug("Enter in constructor of PipeServer ");
+                _logger.Trace(string.Format("Received parameters: pipeName: {0} , MaxNumberOfServerInstances : {1} ", pipeName, MaxNumberOfServerInstances));
+                _pipeName = pipeName;
+                _maxNumberOfServerInstances = MaxNumberOfServerInstances;
+                _synchronizationContext = AsyncOperationManager.SynchronizationContext;
+                _servers = new ConcurrentDictionary<string, InternalPipeServer>();
+            }
+            catch (Exception e)
+            {
+                _logger.Fatal(e);
+            }
         }
 
         #region ICommunicationServer implementation
