@@ -15,24 +15,14 @@ namespace ClientServerUsingNamedPipes.Server
         private readonly NamedPipeServerStream _pipeServer;
         private bool _isStopping;
         private readonly object _lockingObject = new object();
-        private const int BufferSize = 2048;
+
         public readonly string Id;
 
         public event EventHandler<ClientConnectedEventArgs> ClientConnectedEvent;
         public event EventHandler<ClientDisconnectedEventArgs> ClientDisconnectedEvent;
         public event EventHandler<MessageReceivedEventArgs> MessageReceivedEvent;
+     
 
-        public class Info
-        {
-            public readonly byte[] Buffer;
-            public readonly StringBuilder StringBuilder;
-
-            public Info()
-            {
-                Buffer = new byte[BufferSize];
-                StringBuilder = new StringBuilder();
-            }
-        }
 
         /// <summary>
         /// Creates a new NamedPipeServerStream 
@@ -124,7 +114,7 @@ namespace ClientServerUsingNamedPipes.Server
 
                         OnConnected();
 
-                        BeginRead(new Info());
+                        BeginRead(new BufferReading());
                     }
                 }
             }
@@ -162,11 +152,11 @@ namespace ClientServerUsingNamedPipes.Server
         /// <summary>
         /// This method begins an asynchronous read operation.
         /// </summary>
-        private void BeginRead(Info info)
+        private void BeginRead(BufferReading bufferReading)
         {
             try
             {
-                _pipeServer.BeginRead(info.Buffer, 0, BufferSize, EndReadCallBack, info);
+                _pipeServer.BeginRead(bufferReading.Buffer, 0, bufferReading.BufferSize, EndReadCallBack, bufferReading);
             }
             catch (Exception ex)
             {
@@ -184,7 +174,7 @@ namespace ClientServerUsingNamedPipes.Server
             var readBytes = _pipeServer.EndRead(result);
             if (readBytes > 0)
             {
-                var info = (Info)result.AsyncState;
+                var info = (BufferReading)result.AsyncState;
 
                 // Get the read bytes and append them
                 info.StringBuilder.Append(Encoding.UTF8.GetString(info.Buffer, 0, readBytes));
@@ -194,7 +184,7 @@ namespace ClientServerUsingNamedPipes.Server
                 OnMessageReceived(message);
 
                 // Begin a new reading operation
-                BeginRead(new Info());
+                BeginRead(new BufferReading());
                 //}
             }
             /// When no bytes were read, it can mean that the client have been disconnected or some problem in BeginRead
@@ -214,17 +204,8 @@ namespace ClientServerUsingNamedPipes.Server
             }
         }
 
-     
-
-        public TaskResult EndWriteCallBack(IAsyncResult asyncResult)
-        {
-            _pipeServer.EndWrite(asyncResult);
-            _pipeServer.Flush();
-
-            return new TaskResult { IsSuccess = true };
-        }
-
-        public Task<TaskResult> SendMessage(string message)
+    
+         public Task<TaskResult> SendMessage(string message)
         {
             var taskCompletionSource = new TaskCompletionSource<TaskResult>();
 
@@ -253,6 +234,16 @@ namespace ClientServerUsingNamedPipes.Server
             return taskCompletionSource.Task;
         }
 
+
+        public TaskResult EndWriteCallBack(IAsyncResult asyncResult)
+        {
+            _pipeServer.EndWrite(asyncResult);
+            _pipeServer.Flush();
+
+            return new TaskResult { IsSuccess = true };
+        }
+
+       
         public bool isConnected()
         {
             return _pipeServer.IsConnected;

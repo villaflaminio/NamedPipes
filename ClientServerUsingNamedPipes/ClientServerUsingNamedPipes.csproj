@@ -38,6 +38,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Client\Logger.cs" />
+    <Compile Include="Utilities\BufferReading.cs" />
     <Compile Include="Utilities\EventHandlerExtensions.cs" />
     <Compile Include="Interfaces\ICommunication.cs" />
     <Compile Include="Interfaces\ICommunicationClient.cs" />

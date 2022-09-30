@@ -13,11 +13,13 @@ namespace NamedPipes
     {
         static void Main(string[] args)
         {
-            PipeServer _server = new PipeServer("flaminio" , 10);
+            PipeServer _server = new PipeServer("flaminio", 10);
+            PipeServer _server2 = new PipeServer("server", 10);
             PipeClient _client = new PipeClient(_server.ServerId);
             PipeClient _client2 = new PipeClient("server");
 
             _server.Start();
+            _server2.Start();
 
             string message = null;
 
@@ -34,7 +36,11 @@ namespace NamedPipes
                 message = argss.Message;
                 Console.WriteLine("Server ha ricevuto " + message);
             };
-
+            _server2.MessageReceivedEvent += (sender, argss) =>
+            {
+                message = argss.Message;
+                Console.WriteLine("Server 2 ha ricevuto " + message);
+            };
 
             Task.Delay(1000);
             for (int i = 0; i < 10; i++)
@@ -43,7 +49,7 @@ namespace NamedPipes
                 //  _server.sendMessage("Server message " + i);
             }
 
-          //  _client2.SendMessage("Client 2 message");
+           _client2.SendMessage("Client 2 message");
 
 
             _server.SendMessage("Server send message");

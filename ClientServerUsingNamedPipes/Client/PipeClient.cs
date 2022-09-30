@@ -15,7 +15,6 @@ namespace ClientServerUsingNamedPipes.Client
         #region private fields
 
         private NamedPipeClientStream _pipeClient;
-        private const int BufferSize = 2048;
 
         #endregion
 
@@ -48,7 +47,7 @@ namespace ClientServerUsingNamedPipes.Client
 
             if (_pipeClient.IsConnected)
             {
-                BeginRead(new Info());
+                BeginRead(new BufferReading());
             }
 
         }
@@ -121,11 +120,11 @@ namespace ClientServerUsingNamedPipes.Client
         /// <summary>
         /// This method begins an asynchronous read operation.
         /// </summary>
-        private void BeginRead(Info info)
+        private void BeginRead(BufferReading bufferReading)
         {
             try
             {
-                _pipeClient.BeginRead(info.Buffer, 0, BufferSize, EndReadCallBack, info);
+                _pipeClient.BeginRead(bufferReading.Buffer, 0, bufferReading.BufferSize, EndReadCallBack, bufferReading);
             }
             catch (Exception ex)
             {
@@ -166,7 +165,7 @@ namespace ClientServerUsingNamedPipes.Client
             var readBytes = _pipeClient.EndRead(result);
             if (readBytes > 0)
             {
-                var info = (Info)result.AsyncState;
+                var info = (BufferReading)result.AsyncState;
 
                 // Get the read bytes and append them
                 info.StringBuilder.Append(Encoding.UTF8.GetString(info.Buffer, 0, readBytes));
@@ -183,7 +182,7 @@ namespace ClientServerUsingNamedPipes.Client
                 OnMessageReceived(message);
 
                 // Begin a new reading operation
-                BeginRead(new Info());
+                BeginRead(new BufferReading());
                 //}
             }
         }
