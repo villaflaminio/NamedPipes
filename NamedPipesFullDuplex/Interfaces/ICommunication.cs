@@ -28,7 +28,7 @@ namespace NamedPipesFullDuplex.Interfaces
         /// </summary>
         /// <param name="message"></param>
         /// <returns>A task of TaskResult</returns>
-        void SendMessage(string message);
+        void SendMessage(PipeMessage message);
     }
 
 
@@ -45,7 +45,7 @@ namespace NamedPipesFullDuplex.Interfaces
 
     public class MessageReceivedEventArgs : EventArgs
     {
-        public string Message { get; set; }
+        public PipeMessage Message { get; set; }
     }
 
 

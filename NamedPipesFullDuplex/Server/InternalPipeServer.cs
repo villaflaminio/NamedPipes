@@ -53,7 +53,7 @@ namespace NamedPipesFullDuplex.Server
         /// <summary>
         /// This method fires MessageReceivedEvent with the given message
         /// </summary>
-        private void OnMessageReceivedEvent(string message)
+        private void OnMessageReceivedEvent(PipeMessage message)
         {
             try
             {
@@ -226,10 +226,8 @@ namespace NamedPipesFullDuplex.Server
                 {
                     var info = (BufferReading)result.AsyncState;
 
-                    // Get the read bytes and append them
-                    info.StringBuilder.Append(Encoding.UTF8.GetString(info.Buffer, 0, readBytes));
-
-                    var message = info.StringBuilder.ToString().TrimEnd('\0');
+                    BufferReading reading = (BufferReading)result.AsyncState;
+                    PipeMessage message = PipeMessage.Deserialize(reading.Buffer);
 
                     OnMessageReceivedEvent(message);
 
@@ -260,7 +258,7 @@ namespace NamedPipesFullDuplex.Server
         }
 
 
-        public Task<TaskResult> SendMessage(string message)
+        public Task<TaskResult> SendMessage(PipeMessage message)
         {
             var taskCompletionSource = new TaskCompletionSource<TaskResult>();
 
@@ -269,7 +267,7 @@ namespace NamedPipesFullDuplex.Server
                 _logger.Debug("Enter in SendMessage method of InternalPipeServer " + Id);
                 if (_pipeServer.IsConnected)
                 {
-                    var buffer = Encoding.UTF8.GetBytes(message);
+                    byte[] buffer = message.Serialize();
                     _pipeServer.BeginWrite(buffer, 0, buffer.Length, asyncResult =>
                     {
                         try

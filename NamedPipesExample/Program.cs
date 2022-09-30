@@ -7,6 +7,7 @@ using log4net.Config;
 using NamedPipesFullDuplex.Client;
 using NamedPipesFullDuplex.Interfaces;
 using NamedPipesFullDuplex.Server;
+using NamedPipesFullDuplex.Utilities;
 
 namespace NamedPipesExample
 {
@@ -39,17 +40,16 @@ namespace NamedPipesExample
 
             _server.Start();
             _server2.Start();
-          //  Console.WriteLine("Server c# avviato");
+            //  Console.WriteLine("Server c# avviato");
 
-            string message = null;
+            PipeMessage message = null;
 
 
             _server.Start();
             _client.Start();
             _client2.Start();
 
-            // Act
-            _client.SendMessage("Client's message");
+            PipeMessage pipe = new PipeMessage("flaminio", "client message");
 
             _server.MessageReceivedEvent += (sender, argss) =>
             {
@@ -73,25 +73,25 @@ namespace NamedPipesExample
             Task.Delay(1000);
             for (int i = 0; i < 10; i++)
             {
-                _client.SendMessage("Client send essage " + i);
+                _client.SendMessage(pipe);
                 //  _server.sendMessage("Server message " + i);
             }
 
-            _client2.SendMessage("Client 2 message");
+            _client2.SendMessage(pipe);
 
 
-            _server.SendMessage("Server send message");
+            _server.SendMessage(pipe);
 
 
             _server.ClientDisconnectedEvent += (sender, argss) =>
             {
-                message = argss.ClientId;
-              //  Console.WriteLine("il client " + message + " si e' disconnesso");
+              _logger.Info("Client disconnected " + argss.ClientId);
+                //  Console.WriteLine("il client " + message + " si e' disconnesso");
             };
             _server.ClientConnectedEvent += (sender, argss) =>
             {
-                message = argss.ClientId;
-              //  Console.WriteLine("il client " + message + " si e' connesso");
+                _logger.Info("Client connected " + argss.ClientId);
+                //  Console.WriteLine("il client " + message + " si e' connesso");
             };
 
             Console.ReadLine();

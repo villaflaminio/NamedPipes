@@ -98,6 +98,7 @@
     <Compile Include="Server\InternalPipeServer.cs" />
     <Compile Include="Server\PipeServer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Utilities\PipeMessage.cs" />
     <Compile Include="Utilities\TaskResult.cs" />
   </ItemGroup>
   <ItemGroup>

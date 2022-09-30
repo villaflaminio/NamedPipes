@@ -109,7 +109,7 @@ namespace NamedPipesFullDuplex.Client
         /// <summary>
         /// This method fires MessageReceivedEvent with the given message
         /// </summary>
-        private void OnMessageReceived(string message)
+        private void OnMessageReceived(PipeMessage message)
         {
             try
             {
@@ -159,12 +159,9 @@ namespace NamedPipesFullDuplex.Client
                 var readBytes = _pipeClient.EndRead(result);
                 if (readBytes > 0)
                 {
-                    var info = (BufferReading)result.AsyncState;
+                    BufferReading reading = (BufferReading)result.AsyncState;
 
-                    // Get the read bytes and append them
-                    info.StringBuilder.Append(Encoding.UTF8.GetString(info.Buffer, 0, readBytes));
-
-                    var message = info.StringBuilder.ToString().TrimEnd('\0');
+                    PipeMessage message = PipeMessage.Deserialize(reading.Buffer);
 
                     OnMessageReceived(message);
 
@@ -179,7 +176,7 @@ namespace NamedPipesFullDuplex.Client
         }
 
 
-        public void SendMessage(string message)
+        public void SendMessage(PipeMessage message)
         {
             try
             {
@@ -190,12 +187,12 @@ namespace NamedPipesFullDuplex.Client
 
                 if (_pipeClient.IsConnected)
                 {
-                    var buffer = Encoding.UTF8.GetBytes(message);
+                    byte[] buffer = message.Serialize();
                     _pipeClient.BeginWrite(buffer, 0, buffer.Length, asyncResult =>
                     {
                         try
                         {
-                            taskCompletionSource.SetResult(EndSendMessageCallBack(asyncResult));
+                            taskCompletionSource.SetResult(EndWriteCallBack(asyncResult));
                         }
                         catch (Exception ex)
                         {
@@ -225,7 +222,7 @@ namespace NamedPipesFullDuplex.Client
         /// It can be called whether the connection is valid or not.
         /// </summary>
         /// <param name="asyncResult"></param>
-        public TaskResult EndSendMessageCallBack(IAsyncResult asyncResult)
+        public TaskResult EndWriteCallBack(IAsyncResult asyncResult)
         {
             try
             {

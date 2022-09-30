@@ -246,7 +246,7 @@ namespace NamedPipesFullDuplex.Server
         /// <summary>
         /// Starts a new NamedPipeServerStream that waits for connection
         /// </summary>
-        public void SendMessage(string message)
+        public void SendMessage(PipeMessage message)
         {
             try
             {
